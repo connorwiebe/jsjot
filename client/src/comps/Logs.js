@@ -9,7 +9,7 @@ const Logs = React.memo(({ code }) => {
   React.useEffect(() => {
     const preserveLogs = ls.get('config', 'preserveLogs')
     if (!preserveLogs) setLogs([[]])
-    if (preserveLogs) {
+    if (preserveLogs && code !== undefined) {
       setLogs(oldLogs => [...oldLogs, []])
     }
   }, [code])

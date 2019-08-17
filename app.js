@@ -25,8 +25,8 @@ if (prod) app.use(compression({ threshold: 0 }))
 if (prod) app.use(helmet())
 if (prod) app.set('trust proxy', 1)
 app.use(bodyParser.json(), bodyParser.urlencoded({ extended: false }))
-app.use(express.static(path.join(__dirname, 'client/build')))
-app.use(favicon(path.join(__dirname, 'client/build/favicon.ico')))
+// app.use(express.static(path.join(__dirname, 'client/build')))
+// app.use(favicon(path.join(__dirname, 'client/build/favicon.ico')))
 app.use(sessions(), bouncer)
 
 const client_id = process.env[`GITHUB_ID${prod ? '' : '_DEV'}`]
@@ -199,7 +199,7 @@ app.get('/api/notes', async (req, res, next) => {
 // =================== API END ===================
 
 // serve index from build folder
-app.get('*', (req, res, next) => {
+app.get('/', (req, res, next) => {
   res.sendFile(path.join(__dirname, 'client/build/index.html'))
 })
 
