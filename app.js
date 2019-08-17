@@ -18,7 +18,7 @@ const bouncer = require('./helpers/bouncer')
 const sessions = require('./helpers/sessions')
 const throttle = require('./helpers/throttle')
 
-app.listen(process.env.PORT || 3333)
+app.listen(2222)
 const dev = process.env.NODE_ENV === 'development'
 const prod = process.env.NODE_ENV === 'production'
 if (prod) app.use(compression({ threshold: 0 }))
