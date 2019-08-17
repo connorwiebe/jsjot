@@ -20,7 +20,9 @@ const Editor = React.memo(({ router, user, ws, setLastEditor }) => {
       setNote(null)
     }
 
-    ws.onopen = () => ws.send(JSON.stringify({ id, type: 'connection' }))
+    if (ws.readyState === 1) {
+      ws.send(JSON.stringify({ id, type: 'connection' }))
+    }
 
     ;(async () => {
       const note = id ? (await fetch(`/api/note?id=${id}`)) : {}

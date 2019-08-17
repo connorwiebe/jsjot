@@ -14,12 +14,17 @@ const Note = ({ router, user }) => {
 
   const [lastEditor, setLastEditor] = React.useState()
 
+  ws.onopen = () => {
+    console.log('opened')
+  }
+
   return (
     <main>
       <LastEditor lastEditor={lastEditor} onClick={() => {
         const id = router.match.params.id
         ws.send(JSON.stringify({ id, type: 'list' }))
       }}/>
+
       <Editor router={router} user={user} ws={ws} setLastEditor={setLastEditor}/>
     </main>
   )
