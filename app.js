@@ -198,7 +198,7 @@ app.get('/api/notes', async (req, res, next) => {
 // =================== API END ===================
 
 // serve index from build folder
-app.get('/', (req, res, next) => {
+app.get('*', (req, res, next) => {
   res.sendFile(path.join(__dirname, 'client/build/index.html'))
 })
 
