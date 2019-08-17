@@ -17,7 +17,7 @@ const Nav = ({ username }) => {
       <div className="items">
         { username && <Link className="item" to="/notes">Notes</Link> }
         { username && <Link className="item" to="/profile">{username}</Link> }
-        { !username && <a className="item" href={`http://localhost:3333/login`}>Login</a> }
+        { !username && <a className="item" href={`${window.location.origin}/login`}>Login</a> }
       </div>
     </nav>
   )
