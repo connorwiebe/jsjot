@@ -47,11 +47,13 @@ const redirect_uri = process.env[`GITHUB_CB${prod ? '' : '_DEV'}`]
   setTimeout(ping, 30000)
 })()
 
-setInterval(() => {
-  expressWs.getWss().clients.forEach(client => {
-    console.log(`${client.identifier} => ${client.id}`)
-  })
-}, 5000)
+if (dev) {
+  setInterval(() => {
+    expressWs.getWss().clients.forEach(client => {
+      console.log(`${client.identifier} => ${client.id}`)
+    })
+  }, 5000)
+}
 
 // persist session immediately
 app.use((req, res, next) => {
@@ -176,7 +178,6 @@ app.post('/api/create', async (req, res, next) => {
       })
       break
     } catch (err) {
-      console.log(err)
       if (i === 999) return next(err(500, 'Failed to insert note.'))
       if (err.code === '23505') continue
       return next(err)
@@ -208,7 +209,7 @@ app.use((req, res, next) => {
 })
 
 app.use(async (err, req, res, next) => {
-  if (dev || prod) console.log(err)
+  if (dev) console.log(err)
   if (err.statusCode) err.code = err.statusCode
   if (!err.code || typeof err.code !== 'number') err.code = 500
   if (err.code === 500 && prod) process.exitCode = 1
