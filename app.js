@@ -25,7 +25,7 @@ if (prod) app.use(compression({ threshold: 0 }))
 if (prod) app.use(helmet())
 if (prod) app.set('trust proxy', 1)
 app.use(bodyParser.json(), bodyParser.urlencoded({ extended: false }))
-// app.use(express.static(path.join(__dirname, 'client/build')))
+app.use(express.static(path.join(__dirname, 'client/build')))
 // app.use(favicon(path.join(__dirname, 'client/build/favicon.ico')))
 app.use(sessions(), bouncer)
 
