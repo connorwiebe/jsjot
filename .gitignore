@@ -1,0 +1,5 @@
+.env
+todo.js
+trash.js
+client/node_modules
+node_modules

@@ -1,0 +1,101 @@
+$code-font: 'Inconsolata', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif
+$display-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif
+
+@import 'theme-args.scss'
+
+=generate-themes($theme,$background,$base-color,$activeline-background,$matchingbracket,$linenumber,$focused-linenumber,$selected,$cursor,$comment-style,$comment,$atom,$number,$property,$keyword,$string,$string-2,$variable,$variable-2,$def,$operator,$meta,$reflex-splitter)
+
+  [data-theme=#{$theme}]
+    background: $background
+    color: $base-color
+
+    .titles, .note
+      border-color: $base-color
+
+    button
+      color: $base-color
+
+    .loading
+      &:after
+        border-bottom-color: $base-color
+        border-left-color: $base-color
+
+    [data-display='large'],
+    [data-display='small']
+      fill: $base-color
+
+  .cm-s-#{$theme}
+    &.CodeMirror
+      height: 100%
+      background: $background
+      font-weight: 700
+      font-size: 17px
+      line-height: 19.5px
+      font-family: $code-font
+    .CodeMirror-activeline-background
+      background: $activeline-background
+    .CodeMirror-matchingbracket
+      text-decoration: underline
+      color: $matchingbracket !important
+    .CodeMirror-linenumber
+      padding: 1px 12px 0 5px
+      color: $linenumber
+    &.CodeMirror-focused .CodeMirror-activeline-gutter .CodeMirror-linenumber
+      color: $focused-linenumber
+    .CodeMirror-selected
+      background: $selected
+    .CodeMirror-cursor
+      border-left: 2px solid $cursor !important
+    .CodeMirror-code
+      color: $base-color
+    .CodeMirror-gutters
+      background: rgba(0,0,0,0)
+      min-width: 2rem
+      border-right: 0px
+    .CodeMirror-scroll
+      overflow-y: hidden
+      overflow-x: auto
+    span
+      &.cm-comment
+        font-style: $comment-style
+        color: $comment
+      &.cm-atom
+        color: $atom
+      &.cm-number
+        color: $number
+      &.cm-property
+        color: $property
+      &.cm-keyword
+        color: $keyword
+      &.cm-string
+        color: $string
+      &.cm-string-2
+        color: $string-2
+      &.cm-variable
+        color: $variable
+      &.cm-variable-2
+        color: $variable-2
+      &.cm-def
+        color: $def
+      &.cm-operator
+        color: $operator
+      &.cm-meta
+        color: $meta
+
+  [data-theme=#{$theme}]
+    .reflex-container.vertical > .reflex-splitter
+      background: $reflex-splitter
+    .reflex-container.horizontal > .reflex-splitter
+      background: $reflex-splitter
+    .reflex-container > .reflex-splitter
+      background: $reflex-splitter
+    .reflex-container.vertical > .reflex-splitter:hover,
+    .reflex-container.vertical > .reflex-splitter.active,
+    .reflex-container.horizontal > .reflex-splitter:hover,
+    .reflex-container.horizontal > .reflex-splitter.active
+      background: $reflex-splitter
+
++generate-themes($default...)
++generate-themes($monochrome...)
++generate-themes($monochrome-dark...)
++generate-themes($ocean-dark...)

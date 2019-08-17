@@ -1,0 +1,35 @@
+{
+  "name": "JSJot",
+  "version": "2.0.0",
+  "main": "app.js",
+  "description": "Collaborative Javascript console logger.",
+  "author": "Connor Wiebe",
+  "license": "MIT",
+  "scripts": {
+    "start-dev": "concurrently --kill-others-on-fail \"yarn run server\" \"yarn run client\"",
+    "server": "NODE_ENV=development nodemon -i client --trace-warnings app.js",
+    "client": "cd client && yarn start"
+  },
+  "dependencies": {
+    "bluebird": "^3.5.3",
+    "compression": "^1.7.3",
+    "connect-session-knex": "^1.4.0",
+    "crypto-alphanumeric-id": "^1.0.1",
+    "dotenv": "^6.1.0",
+    "express": "^4.16.4",
+    "express-session": "^1.15.6",
+    "express-ws": "^4.0.0",
+    "haikunator": "^2.1.1",
+    "helmet": "^3.15.0",
+    "knex": "^0.14.6",
+    "pg": "^7.6.1",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2",
+    "serve-favicon": "^2.5.0",
+    "statuses": "^1.5.0",
+    "ws": "^6.2.0"
+  },
+  "devDependencies": {
+    "concurrently": "^3.6.1"
+  }
+}
