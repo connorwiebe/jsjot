@@ -14,10 +14,6 @@ const Note = ({ router, user }) => {
 
   const [lastEditor, setLastEditor] = React.useState()
 
-  ws.onopen = () => {
-    console.log('opened')
-  }
-
   return (
     <main>
       <LastEditor lastEditor={lastEditor} onClick={() => {
