@@ -8,7 +8,6 @@ const bodyParser = require('body-parser')
 const cid = require('crypto-alphanumeric-id')
 const favicon = require('serve-favicon')
 const haikunator = new (require('haikunator'))()
-
 const compression = require('compression')
 const helmet = require('helmet')
 const rp = require('request-promise')
@@ -209,7 +208,7 @@ app.use((req, res, next) => {
 })
 
 app.use(async (err, req, res, next) => {
-  if (dev) console.log(err)
+  if (dev || prod) console.log(err)
   if (err.statusCode) err.code = err.statusCode
   if (!err.code || typeof err.code !== 'number') err.code = 500
   if (err.code === 500 && prod) process.exitCode = 1
