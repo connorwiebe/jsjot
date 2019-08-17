@@ -8,7 +8,7 @@ import chunk from 'lodash.chunk'
 
 const Notes = ({ router }) => {
 
-  const [{ notes, pages, page }, setNote] = React.useState({})
+  const [{ notes = [], pages = [], page = 0 }, setNote] = React.useState({})
   const [display, setDisplay] = React.useState(ls.get('config', 'display'))
 
   React.useEffect(() => {
@@ -16,7 +16,7 @@ const Notes = ({ router }) => {
       let _notes = await fetch('/api/notes')
       _notes = _notes.map(({ last_edit, ...rest }) => ({ last_edit: +new Date(last_edit), ...rest }))
       _notes.sort((a, b) => b.last_edit - a.last_edit)
-      setNote({ notes: _notes, pages: chunk(_notes, 10), page: qs.parse(router.location.search).page || 0 })
+      setNote({ notes: _notes, pages: chunk(_notes, 10), page: qs.parse(router.location.search).page })
     })()
   }, [router.location.search])
 
@@ -54,8 +54,10 @@ const Notes = ({ router }) => {
         </div>
       </div>
 
+        { notes && !notes.length && <div className="no-notes">You have no notes.</div> }
+
         <div className="notes" data-display={display}>
-          { pages && pages[page].map((note, i) => {
+          { pages.length ? pages[page].map((note, i) => {
             return (
               <Link key={i} to={`/${note.id}`}>
                 <div className="note" data-display={display}>
@@ -69,13 +71,12 @@ const Notes = ({ router }) => {
                 </div>
               </Link>
             )
-          }) }
-          { notes && !notes.length && <div className="no-notes">You have no notes.</div> }
+          }) : null }
         </div>
 
 
       <div className="pages">
-        { Array.from({ length: pages && pages.length }, (v, i) => {
+        { Array.from({ length: pages.length }, (v, i) => {
           return (
             <Link
               to={`/notes?page=${i}`}
