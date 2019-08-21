@@ -1,7 +1,6 @@
 create table users (
   username citext primary key,
   access_token text,
-  uid text unique,
   created timestamp with time zone default now()
 );
 

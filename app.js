@@ -137,6 +137,14 @@ if (dev) {
 app.get('/api/user', (req, res, next) => {
   if (!req.session.user && !isBot(req.headers['user-agent'])) {
     const ip = dev ? '64.233.191.255' : (req.headers['x-forwarded-for'] || req.ip)
+
+    console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+    console.log(req.headers['x-forwarded-for'])
+    console.log(req.connection.remoteAddress)
+    console.log(req.ip)
+    console.log((req.headers['x-forwarded-for'] || req.ip))
+    console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+
     req.session.user = {
       alias: haikunator.haikunate({ tokenLength: 0 }),
       country: expressIp().getIpInfo(ip).country
@@ -154,7 +162,6 @@ app.get('/api/note', async (req, res, next) => {
 })
 
 app.get('/login', async (req, res, next) => {
-  console.log('/login')
   if (req.session.user.username) return res.redirect('http://localhost:3000/')
 
   const state = await cid(5)
