@@ -136,14 +136,7 @@ if (dev) {
 
 app.get('/api/user', (req, res, next) => {
   if (!req.session.user && !isBot(req.headers['user-agent'])) {
-    const ip = dev ? '64.233.191.255' : (req.headers['x-forwarded-for'] || req.ip)
-
-    console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-    console.log(req.headers['x-forwarded-for'])
-    console.log(req.connection.remoteAddress)
-    console.log(req.ip)
-    console.log((req.headers['x-forwarded-for'] || req.ip))
-    console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+    const ip = dev ? '64.233.191.255' : (req.headers['x-forwarded-for'].split(',')[0] || req.ip)
 
     req.session.user = {
       alias: haikunator.haikunate({ tokenLength: 0 }),
