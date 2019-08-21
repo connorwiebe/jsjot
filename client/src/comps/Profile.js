@@ -88,7 +88,7 @@ const Profile = ({ router, user, setTheme }) => {
             setTimeout(() => {
               setLoading({ ...loading, signOut: false })
               window.location = window.location.origin
-            }, 500)
+            }, 30000)
           }} className={ classNames("btn", { loading: loading.signOut })}>Sign Out</button>
         </div>
       </div>

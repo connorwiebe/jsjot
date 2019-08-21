@@ -3,13 +3,15 @@ import { ReflexContainer, ReflexSplitter, ReflexElement } from '../helpers/refle
 import ls from '../helpers/ls'
 
 const Logs = React.memo(({ code }) => {
-  // console.log('Logs')
+
   const [logs, setLogs] = React.useState([])
 
   React.useEffect(() => {
     const preserveLogs = ls.get('config', 'preserveLogs')
-    if (!preserveLogs) setLogs([[]])
-    if (preserveLogs && code !== undefined) {
+    if (!preserveLogs) {
+      setLogs([[]])
+    }
+    if (preserveLogs) {
       setLogs(oldLogs => [...oldLogs, []])
     }
   }, [code])

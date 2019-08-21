@@ -12,26 +12,30 @@ const compression = require('compression')
 const helmet = require('helmet')
 const rp = require('request-promise')
 const knex = require('knex')(require('./helpers/database')())
+const isBot = require('isbot-fast')
+const expressIp = require('express-ip')
 
 const err = require('./helpers/err')
-const bouncer = require('./helpers/bouncer')
 const sessions = require('./helpers/sessions')
 const throttle = require('./helpers/throttle')
 
 app.listen(2222)
 const dev = process.env.NODE_ENV === 'development'
 const prod = process.env.NODE_ENV === 'production'
-if (prod) app.use(compression({ threshold: 0 }))
-if (prod) app.use(helmet())
-if (prod) app.set('trust proxy', 1)
 app.use(bodyParser.json(), bodyParser.urlencoded({ extended: false }))
-app.use(express.static(path.join(__dirname, 'client/build')))
-if (prod) app.use(favicon(path.join(__dirname, 'client/build/favicon.ico')))
-app.use(sessions(), bouncer)
+app.use(sessions())
 
 const client_id = process.env[`GITHUB_ID${prod ? '' : '_DEV'}`]
 const client_secret = process.env[`GITHUB_SECRET${prod ? '' : '_DEV'}`]
 const redirect_uri = process.env[`GITHUB_CB${prod ? '' : '_DEV'}`]
+
+if (prod) {
+  app.use(compression({ threshold: 0 }))
+  app.use(helmet())
+  app.set('trust proxy', 1)
+  app.use(express.static(path.join(__dirname, 'client/build')))
+  app.use(favicon(path.join(__dirname, 'client/build/favicon.ico')))
+}
 
 // ping for closed websocket connections
 ;(function ping () {
@@ -47,72 +51,98 @@ const redirect_uri = process.env[`GITHUB_CB${prod ? '' : '_DEV'}`]
   setTimeout(ping, 30000)
 })()
 
-if (dev) {
-  setInterval(() => {
-    expressWs.getWss().clients.forEach(client => {
-      console.log(`${client.identifier} => ${client.id}`)
-    })
-  }, 5000)
-}
-
-// persist session immediately
-app.use((req, res, next) => {
-  if (!req.session.user) {
-    req.session.user = { alias: haikunator.haikunate({ tokenLength: 0 }) }
-    req.session.cookie.maxAge = 2628002880
-  }
-  next()
-})
-
-// =================== API START ===================
+/* =================== API START =================== */
 app.ws('/ws', (ws, req) => {
 
-  // if (!req.session.user) return next()
-
-  const { username = '', alias = '' } = req.session.user
+  // hack. have to do this when session is first created or ws connection has different session
+  if (!req.session.user) return ws.terminate()
 
   // init ws
+  ws.send(JSON.stringify({ type: 'established' }))
   ws.sessionID = req.sessionID
   ws.isAlive = true
   ws.on('pong', () => ws.isAlive = true)
 
+  // send close event to users associated with same note
+  ws.onclose = e => {
+    const socket = e.target
+    sendList(socket.id)
+  }
+
   // ws message
   ws.onmessage = async e => {
+
+    const { username, alias, country } = req.session.user || {}
     const data = JSON.parse(e.data)
 
-    // set identifier
+    if (dev) console.log(`message -> ${data.type}`)
+
+    // set identifier and country
     data.identifier = (data.stayAnonymous || !username) ? alias : username
     ws.identifier = data.identifier
+    ws.country = country
 
     // associate/disassociate ws connection with note id
-    if (data.type === 'connection') return ws.id = data.id
-    if (data.type === 'disconnection') return ws.id = undefined
+    if (data.type === 'connection') {
+      ws.id = data.id
+      sendList(data.id)
+    }
+    if (data.type === 'disconnection') {
+      ws.id = undefined
+      sendList(data.id)
+    }
 
-    // broadcast selections and value changes to all users with on the same note
+    // broadcast selections and value changes to all users on the same note
     if (data.type === 'selection' || data.type === 'value') {
       expressWs.getWss().clients.forEach(client => {
         if (client.sessionID !== req.sessionID && client.id === data.id) {
           client.send(JSON.stringify(data))
         }
       })
+      // save change to db
       throttle.save(data, req.sessionID)
     }
-
-    // get list of all users connected to a note
-    if (data.type === 'list') {
-      let list = []
-      expressWs.getWss().clients.forEach(client => {
-        if (client.id === data.id) {
-          list.push(client.identifier)
-        }
-      })
-      ws.send(JSON.stringify({type: 'list', list}))
-    }
-
   }
+
+  const sendList = id => {
+    // get list of all users connected to note
+    let list = []
+    expressWs.getWss().clients.forEach(client => {
+      if (!client.id || !id) return
+      if (client.id === id) {
+        list.push({ identifier: client.identifier, country: client.country })
+      }
+    })
+    // send list to all users connected to note
+    expressWs.getWss().clients.forEach(client => {
+      if (!client.id || !id) return
+      if (client.id === id) {
+        client.send(JSON.stringify({ type: 'list', list }))
+      }
+    })
+  }
+
 })
 
-app.get('/api/user', async (req, res, next) => {
+if (dev) {
+  setInterval(() => {
+    const list = [`\n------------------------------------------------`]
+    expressWs.getWss().clients.forEach(client => {
+      list.unshift(`\n${client.identifier} -> ${client.id || null} | ${client.sessionID}`)
+    })
+    console.log(`Total clients: ${expressWs.getWss().clients.size} ${list}`)
+  }, 5000)
+}
+
+app.get('/api/user', (req, res, next) => {
+  if (!req.session.user && !isBot(req.headers['user-agent'])) {
+    const ip = dev ? '64.233.191.255' : (req.headers['x-forwarded-for'] || req.ip)
+    req.session.user = {
+      alias: haikunator.haikunate({ tokenLength: 0 }),
+      country: expressIp().getIpInfo(ip).country
+    }
+    req.session.cookie.maxAge = 2628002880
+  }
   res.json(req.session.user)
 })
 
@@ -124,6 +154,7 @@ app.get('/api/note', async (req, res, next) => {
 })
 
 app.get('/login', async (req, res, next) => {
+  console.log('/login')
   if (req.session.user.username) return res.redirect('http://localhost:3000/')
 
   const state = await cid(5)
@@ -155,13 +186,13 @@ app.get('/login/callback', async (req, res, next) => {
   if (!user) await knex('users').insert({ username, access_token })
 
   req.session.user.username = username
-  req.session.cookie.maxAge = 2628002880
+  req.session.cookie.maxAge = 2628002880 // 1 month
   req.session.save(() => res.redirect(dev ? 'http://localhost:3000/' : 'https://jsjot.com/'))
 })
 
 app.post('/api/create', async (req, res, next) => {
-  const { username = null } = req.session
-  let { value, selections } = req.body
+  const { username = null } = req.session.user
+  let { value, selections, lastEditor } = req.body
 
   let id
   const idLength = 5
@@ -173,7 +204,7 @@ app.post('/api/create', async (req, res, next) => {
         id,
         value,
         author: username,
-        last_editor: username,
+        last_editor: username || lastEditor,
         selections: JSON.stringify(selections)
       })
       break
@@ -187,7 +218,7 @@ app.post('/api/create', async (req, res, next) => {
   res.send({ id })
 })
 
-app.get('/api/signOut', async (req, res, next) => {
+app.put('/api/signOut', async (req, res, next) => {
   if (!req.session.user.username) return next(err(401,'Client tried to access a users only route.'))
   req.session.destroy(() => res.end())
 })
@@ -196,12 +227,14 @@ app.get('/api/notes', async (req, res, next) => {
   const notes = await knex('notes').where({ author: req.session.user.username })
   res.send(notes)
 })
-// =================== API END ===================
+/* =================== API END =================== */
 
 // serve index from build folder
-app.get('*', (req, res, next) => {
-  res.sendFile(path.join(__dirname, 'client/build/index.html'))
-})
+if (prod) {
+  app.get('*', (req, res, next) => {
+    res.sendFile(path.join(__dirname, 'client/build/index.html'))
+  })
+}
 
 // error handling
 app.use((req, res, next) => {
@@ -214,6 +247,5 @@ app.use(async (err, req, res, next) => {
   if (!err.code || typeof err.code !== 'number') err.code = 500
   if (err.code === 500 && prod) process.exitCode = 1
   res.status(err.code)
-  if (dev) console.log('sending error status:', err.code)
   res.send({ err: err.message })
 })

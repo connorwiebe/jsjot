@@ -9,7 +9,7 @@ module.exports = () => {
     secret: process.env.SESSION_SECRET,
     proxy: prod,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     rolling: true,
     cookie: {
       maxAge: 86400, // 1 day

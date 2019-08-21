@@ -17,7 +17,7 @@ const Nav = ({ username }) => {
       <div className="items">
         { username && <Link className="item" to="/notes">Notes</Link> }
         { username && <Link className="item" to="/profile">{username}</Link> }
-        { !username && <a className="item" href={`${window.location.origin}/login`}>Login</a> }
+        { !username && <a className="item" href={`${process.env.NODE_ENV === 'development' ? 'http://localhost:2222' : window.location.origin}/login`}>Login</a> }
       </div>
     </nav>
   )
@@ -30,8 +30,8 @@ const App = () => {
 
   React.useEffect(() => {
     ;(async () => {
-      const user = await fetch('/api/user')
-      console.log(user)
+      var user = await fetch('/api/user')
+      if (process.env.NODE_ENV === 'development') console.log(user)
       setUser(user)
     })()
     setTheme(ls.get('config', 'theme'))

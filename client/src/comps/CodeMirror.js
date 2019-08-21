@@ -10,37 +10,50 @@ import ls from '../helpers/ls'
 import defer from '../helpers/defer'
 import fetch from '../helpers/fetch'
 
-const CodeMirror = React.memo(({ router, user, note, setCode, ws, setLastEditor }) => {
-  // console.log('CodeMirror')
+const CodeMirror = React.memo(({ router, user, note, setCode, ws, setLastEditor, setList, message }) => {
 
   const [instance, setInstance] = React.useState()
 
-  ws.onmessage = data => {
-    data = JSON.parse(data.data)
+  React.useEffect(() => {
+    if (!instance) return
+    instance.setSelections(note.selections ? note.selections : { line: 0, ch: 0 })
+  }, [instance, note])
 
-    const { value, selections, identifier } = data
+  React.useEffect(() => {
+    if (!message || !instance) return
 
-    if (data.type === 'list') {
-      return window.alert(`Connected users: ${JSON.stringify(data.list)}`)
+    if (message.type === 'established') {
+      // hack for session init
+      const id = window.location.pathname.slice(1)
+      ws.send(JSON.stringify({ id, type: 'connection' }))
     }
 
-    if (data.type === 'value') {
-      instance.setValue(value)
-      setLastEditor(identifier)
+    if (message.type === 'list') {
+      // sort list alphabetically
+      const list = message.list.sort((a, b) => {
+        if (b.identifier > a.identifier) return -1
+        if (a.identifier < b.identifier) return 1
+        return 0
+      })
+      setList(list)
     }
 
-    if (data.type !== 'connection') {
+    if (message.type === 'value') {
+      instance.setValue(message.value)
+      setLastEditor(message.identifier)
+    }
+
+    if (message.type === 'value' || message.type === 'selection') {
       const syncSelections = ls.get('config', 'syncSelections')
-      if (syncSelections) instance.setSelections(selections)
+      if (syncSelections) instance.setSelections(message.selections)
     }
-  }
 
-  if (note === null) return null
+  }, [message, setList, instance, setLastEditor, ws])
 
   return (
     <ReactCodeMirror
       value={note.value}
-      cursor={(note.id && note.selections[0].head) || { line: 0, ch: 0 }}
+      cursor={{ line: 0, ch: 0 }}
       options={{
         mode: 'javascript',
         theme: ls.get('config', 'theme'),
@@ -58,16 +71,14 @@ const CodeMirror = React.memo(({ router, user, note, setCode, ws, setLastEditor 
         const id = router.match.params.id
         if (!data.origin || (data.text[0] === '// ' || data.removed[0] === '// ')) return
 
-        const selections = instance.doc.listSelections()
-
         if (id && data.origin !== 'setValue') {
-          const alias = (ls.get('config', 'stayAnonymous') || !user.username) ? user.alias : user.username
-          setLastEditor(alias)
+          const identifier = (ls.get('config', 'stayAnonymous') || !user.username) ? user.alias : user.username
+          setLastEditor(identifier)
           ws.send(JSON.stringify({
             type: 'value',
             id,
             value,
-            selections,
+            selections: instance.doc.listSelections(),
             stayAnonymous: ls.get('config', 'stayAnonymous')
           }))
         }
@@ -76,7 +87,11 @@ const CodeMirror = React.memo(({ router, user, note, setCode, ws, setLastEditor 
           if (!id) {
             const { id: newNoteId } = await fetch({
               url: '/api/create',
-              body: { value, selections }
+              body: {
+                value,
+                lastEditor: (ls.get('config', 'stayAnonymous') || !user.username) ? user.alias : user.username,
+                selections: instance.doc.listSelections()
+              }
             })
             router.history.push(`/${newNoteId}`)
           }
@@ -85,15 +100,14 @@ const CodeMirror = React.memo(({ router, user, note, setCode, ws, setLastEditor 
       }}
       onCursorActivity={instance => {
         const id = router.match.params.id
-        if (!id || instance.doc.history.lastSelOrigin !== '*mouse') return
-        const selections = instance.doc.listSelections()
-        const value = instance.getValue()
+        const origin = instance.doc.history.lastSelOrigin
+        if (!id || !['*mouse','+move'].includes(origin)) return
 
         ws.send(JSON.stringify({
           type: 'selection',
           id,
-          value,
-          selections,
+          value: instance.getValue(),
+          selections: instance.doc.listSelections(),
           stayAnonymous: ls.get('config', 'stayAnonymous')
         }))
       }}

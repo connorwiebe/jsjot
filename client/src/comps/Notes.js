@@ -8,15 +8,16 @@ import chunk from 'lodash.chunk'
 
 const Notes = ({ router }) => {
 
-  const [{ notes = [], pages = [], page = 0 }, setNote] = React.useState({})
+  const [{ notes = null, pages = [], page = 1 }, setNote] = React.useState({})
   const [display, setDisplay] = React.useState(ls.get('config', 'display'))
 
   React.useEffect(() => {
     ;(async () => {
       let _notes = await fetch('/api/notes')
+      if (process.env.NODE_ENV === 'development') console.log(_notes)
       _notes = _notes.map(({ last_edit, ...rest }) => ({ last_edit: +new Date(last_edit), ...rest }))
       _notes.sort((a, b) => b.last_edit - a.last_edit)
-      setNote({ notes: _notes, pages: chunk(_notes, 10), page: qs.parse(router.location.search).page })
+      setNote({ notes: _notes, pages: chunk(_notes, 10), page: qs.parse(router.location.search).page - 1 || 0 })
     })()
   }, [router.location.search])
 
@@ -79,14 +80,14 @@ const Notes = ({ router }) => {
         { Array.from({ length: pages.length }, (v, i) => {
           return (
             <Link
-              to={`/notes?page=${i}`}
+              to={`/notes?page=${i+1}`}
               onClick={e => {
-                const page = e.target.text
+                const page = e.target.text - 1
                 setNote({ notes, pages, page })
               }}
               className="page"
               data-active={i === +page}
-              key={i}>{i}
+              key={i}>{i+1}
             </Link>
           )
         }) }
