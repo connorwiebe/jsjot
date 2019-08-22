@@ -137,7 +137,6 @@ if (dev) {
 app.get('/api/user', (req, res, next) => {
   if (!req.session.user && !isBot(req.headers['user-agent'])) {
     const ip = dev ? '64.233.191.255' : (req.headers['x-forwarded-for'].split(',')[0] || req.ip)
-
     req.session.user = {
       alias: haikunator.haikunate({ tokenLength: 0 }),
       country: expressIp().getIpInfo(ip).country

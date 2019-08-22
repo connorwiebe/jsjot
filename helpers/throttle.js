@@ -9,8 +9,11 @@ module.exports = (() => {
 
     const saveObj = {
       value: data.value,
-      last_editor: data.identifier,
       last_edit: 'now()'
+    }
+
+    if (data.type === 'value') {
+      saveObj.last_editor = data.identifier
     }
 
     if (data.selections) {
@@ -18,7 +21,7 @@ module.exports = (() => {
     }
 
     return setTimeout(async () => {
-      console.log(`updating db with data -> ${JSON.stringify(saveObj)}`)
+      if (process.env.NODE_ENV !== 'development') console.log(`updating db with data -> ${JSON.stringify(saveObj)}`)
       await knex('notes').where({ id }).update(saveObj)
       list.delete(id)
     }, 5000)

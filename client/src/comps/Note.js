@@ -37,7 +37,9 @@ const Note = React.memo(({ router, user }) => {
     }
 
     if (id) {
-      ws.send(JSON.stringify({ id, stayAnonymous: ls.get('config', 'stayAnonymous'), type: 'connection' }))
+      if (ws.readyState === 1) {
+        ws.send(JSON.stringify({ id, stayAnonymous: ls.get('config', 'stayAnonymous'), type: 'connection' }))
+      }
       ;(async () => {
         const note = await fetch(`/api/note?id=${id}`)
         if (process.env.NODE_ENV === 'development') console.log(note)
