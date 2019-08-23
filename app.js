@@ -136,8 +136,9 @@ app.ws('/ws', (ws, req) => {
 // }
 
 app.get('/api/sockets', (req, res, next) => {
-  const { key } = req.query
   console.log('/api/socket')
+
+  const { key } = req.query
   if (key !== process.env.CONNORWIEBE_KEY) return next(err(403,'Incorrect key.'))
 
   const users = []
@@ -146,7 +147,7 @@ app.get('/api/sockets', (req, res, next) => {
     users.push({ username: client.identifier, lat, long })
   })
 
-  return users
+  res.json(users)
 })
 
 app.get('/api/user', (req, res, next) => {
