@@ -138,7 +138,7 @@ app.ws('/ws', (ws, req) => {
 app.get('/api/sockets', (req, res, next) => {
   const { key } = req.query
   console.log('/api/socket')
-  if (key !== process.ENV.CONNORWIEBE_KEY) return
+  if (key !== process.env.CONNORWIEBE_KEY) return
 
   const users = []
   expressWs.getWss().clients.forEach(client => {
