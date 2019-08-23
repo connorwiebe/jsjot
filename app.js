@@ -72,7 +72,7 @@ app.ws('/ws', (ws, req) => {
   // ws message
   ws.onmessage = async e => {
 
-    const { username, alias, country } = req.session.user || {}
+    const { username, alias, country, ll } = req.session.user || {}
     const data = JSON.parse(e.data)
 
     if (dev) console.log(`message -> ${data.type}`)
@@ -81,6 +81,7 @@ app.ws('/ws', (ws, req) => {
     data.identifier = (data.stayAnonymous || !username) ? alias : username
     ws.identifier = data.identifier
     ws.country = country
+    ws.ll = ll
 
     // associate/disassociate ws connection with note id
     if (data.type === 'connection') {
@@ -124,22 +125,38 @@ app.ws('/ws', (ws, req) => {
 
 })
 
-if (dev) {
-  setInterval(() => {
-    const list = [`\n------------------------------------------------`]
-    expressWs.getWss().clients.forEach(client => {
-      list.unshift(`\n${client.identifier} -> ${client.id || null} | ${client.sessionID}`)
-    })
-    console.log(`Total clients: ${expressWs.getWss().clients.size} ${list}`)
-  }, 5000)
-}
+// if (dev) {
+//   setInterval(() => {
+//     const list = [`\n------------------------------------------------`]
+//     expressWs.getWss().clients.forEach(client => {
+//       list.unshift(`\n${client.identifier} -> ${client.id || null} | ${client.sessionID}`)
+//     })
+//     console.log(`Total clients: ${expressWs.getWss().clients.size} ${list}`)
+//   }, 5000)
+// }
+
+app.get('/api/sockets', (req, res, next) => {
+  const { key } = req.query
+  console.log('/api/socket')
+  if (key !== process.ENV.CONNORWIEBE_KEY) return
+
+  const users = []
+  expressWs.getWss().clients.forEach(client => {
+    const [lat, long] = client.ll
+    users.push({ username: client.identifier, lat, long })
+  })
+
+  return users
+})
 
 app.get('/api/user', (req, res, next) => {
   if (!req.session.user && !isBot(req.headers['user-agent'])) {
     const ip = dev ? '64.233.191.255' : (req.headers['x-forwarded-for'].split(',')[0] || req.ip)
+    const userMetadata = expressIp().getIpInfo(ip)
     req.session.user = {
       alias: haikunator.haikunate({ tokenLength: 0 }),
-      country: expressIp().getIpInfo(ip).country
+      country: userMetadata.country,
+      ll: userMetadata.ll
     }
     req.session.cookie.maxAge = 2628002880
   }

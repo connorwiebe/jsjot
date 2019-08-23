@@ -2,7 +2,7 @@
   "name": "JSJot",
   "version": "2.0.0",
   "main": "index.js",
-  "description": "Collaborative Javascript console logger.",
+  "description": "Collaborative JavaScript console logger.",
   "author": "Connor Wiebe",
   "license": "MIT",
   "dependencies": {
