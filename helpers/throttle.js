@@ -21,7 +21,7 @@ module.exports = (() => {
     }
 
     return setTimeout(async () => {
-      if (process.env.NODE_ENV !== 'development') console.log(`updating db with data -> ${JSON.stringify(saveObj)}`)
+      if (process.env.NODE_ENV === 'development') console.log(`updating db with data -> ${JSON.stringify(saveObj)}`)
       await knex('notes').where({ id }).update(saveObj)
       list.delete(id)
     }, 5000)
