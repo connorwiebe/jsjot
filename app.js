@@ -136,14 +136,12 @@ app.ws('/ws', (ws, req) => {
 // }
 
 app.get('/api/sockets', (req, res, next) => {
-  console.log('/api/socket')
-
   const { key } = req.query
   if (key !== process.env.CONNORWIEBE_KEY) return next(err(403,'Incorrect key.'))
 
   const users = []
   expressWs.getWss().clients.forEach(client => {
-    const [lat, long] = client.ll
+    const [lat, long] = client.ll || []
     users.push({ username: client.identifier, lat, long })
   })
 
