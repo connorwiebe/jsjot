@@ -125,15 +125,15 @@ app.ws('/ws', (ws, req) => {
 
 })
 
-// if (dev) {
-//   setInterval(() => {
-//     const list = [`\n------------------------------------------------`]
-//     expressWs.getWss().clients.forEach(client => {
-//       list.unshift(`\n${client.identifier} -> ${client.id || null} | ${client.sessionID}`)
-//     })
-//     console.log(`Total clients: ${expressWs.getWss().clients.size} ${list}`)
-//   }, 5000)
-// }
+if (false && dev) {
+  setInterval(() => {
+    const list = [`\n------------------------------------------------`]
+    expressWs.getWss().clients.forEach(client => {
+      list.unshift(`\n${client.identifier} -> ${client.id || null} | ${client.sessionID}`)
+    })
+    console.log(`Total clients: ${expressWs.getWss().clients.size} ${list}`)
+  }, 5000)
+}
 
 app.get('/api/sockets', (req, res, next) => {
   const { key } = req.query
@@ -165,7 +165,7 @@ app.get('/api/user', (req, res, next) => {
 app.get('/api/note', async (req, res, next) => {
   const { id } = req.query
   if (!id) return res.json({})
-  const note = await knex('notes').where({ id }).first() || {}
+  const note = await knex('notes').select('id','value','selections','last_editor').where({ id }).first() || {}
   res.json(note)
 })
 
@@ -234,7 +234,7 @@ app.post('/api/create', async (req, res, next) => {
 })
 
 app.put('/api/signOut', async (req, res, next) => {
-  if (!req.session.user.username) return next(err(401,'Client tried to access a users only route.'))
+  if (!req.session.user && req.session.user.username) return next(err(401,'Client tried to access a users only route.'))
   req.session.destroy(() => res.end())
 })
 

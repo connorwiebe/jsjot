@@ -9,7 +9,7 @@ module.exports = () => {
   } else {
     return {
       client: 'pg',
-      pool: { min: 1, max: 20 }, // heroku free tier limit
+      pool: { min: 1, max: 20 },
       connection: {
         database: 'jsjot',
         user: 'root',
