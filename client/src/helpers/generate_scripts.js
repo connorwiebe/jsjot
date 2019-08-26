@@ -8,8 +8,6 @@ const generateScripts = code => {
     window.parent.postMessage(JSON.stringify({ console: { method: 'error', ln, msg, src, ln, col, err, args: [err.stack] } }), '${targetOrigin}');
   };`
 
-  console.log(errScript.text)
-
   // utilities script
   const utilsScript = document.createElement('script')
   utilsScript.text = `let log = console.log.bind(console);
@@ -20,8 +18,6 @@ const generateScripts = code => {
   window.onunhandledrejection = e => {
     window.parent.postMessage(JSON.stringify({ console: { method:'error', type: 'unhandledrejection', args: [e.reason.stack]}}), '${targetOrigin}');
   };`
-
-  console.log(utilsScript.text)
 
   // code script
   const codeScript = document.createElement('script')
