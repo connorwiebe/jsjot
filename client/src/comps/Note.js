@@ -1,6 +1,7 @@
 import React from 'react'
 import fetch from '../helpers/fetch'
 import ls from '../helpers/ls'
+import wsMessage from '../helpers/ws-message'
 import RobustWebSocket from 'robust-websocket'
 import { ReflexContainer, ReflexSplitter, ReflexElement } from '../helpers/reflex'
 import CodeMirror from './CodeMirror'
@@ -23,8 +24,8 @@ const Note = React.memo(({ router, user }) => {
   const [message, setMessage] = React.useState()
 
   ws.onmessage = data => setMessage(JSON.parse(data.data))
-  ws.onclose = z => ws.send(JSON.stringify({ id: router.match.params.id, type: 'disconnection' }))
-  window.onbeforeunload = z => ws.send(JSON.stringify({ id: router.match.params.id, type: 'disconnection' }))
+  ws.onclose = z => wsMessage(ws, { type: 'disconnection', id: router.match.params.id })
+  window.onbeforeunload = z => wsMessage(ws, { type: 'disconnection', id: router.match.params.id })
 
   React.useEffect(() => {
     const id = router.match.params.id
@@ -37,9 +38,7 @@ const Note = React.memo(({ router, user }) => {
     }
 
     if (id) {
-      if (ws.readyState === 1) {
-        ws.send(JSON.stringify({ id, stayAnonymous: ls.get('config', 'stayAnonymous'), type: 'connection' }))
-      }
+      wsMessage(ws, { type: 'connection', id, stayAnonymous: ls.get('config', 'stayAnonymous') })
       ;(async () => {
         const note = await fetch(`/api/note?id=${id}`)
         if (process.env.NODE_ENV === 'development') console.log(note)
@@ -49,7 +48,7 @@ const Note = React.memo(({ router, user }) => {
     }
 
     // clean up
-    return () => ws.send(JSON.stringify({ id, type: 'disconnection' }))
+    return () => wsMessage(ws, { type: 'disconnection', id })
   }, [router.match.params.id, user])
 
   if (note === null) return null

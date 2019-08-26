@@ -9,6 +9,7 @@ import { UnControlled as ReactCodeMirror } from 'react-codemirror2'
 import ls from '../helpers/ls'
 import defer from '../helpers/defer'
 import fetch from '../helpers/fetch'
+import wsMessage from '../helpers/ws-message'
 
 const CodeMirror = React.memo(({ router, user, note, setCode, ws, setLastEditor, setList, message }) => {
 
@@ -25,7 +26,7 @@ const CodeMirror = React.memo(({ router, user, note, setCode, ws, setLastEditor,
     if (message.type === 'established') {
       // hack for session init
       const id = window.location.pathname.slice(1)
-      ws.send(JSON.stringify({ id, type: 'connection' }))
+      wsMessage(ws, { type: 'connection', id })
     }
 
     if (message.type === 'list') {
@@ -74,13 +75,14 @@ const CodeMirror = React.memo(({ router, user, note, setCode, ws, setLastEditor,
         if (id && data.origin !== 'setValue') {
           const identifier = (ls.get('config', 'stayAnonymous') || !user.username) ? user.alias : user.username
           setLastEditor(identifier)
-          ws.send(JSON.stringify({
+
+          wsMessage(ws, {
             type: 'value',
             id,
             value,
             selections: instance.doc.listSelections(),
             stayAnonymous: ls.get('config', 'stayAnonymous')
-          }))
+          })
         }
 
         defer(async () => {
@@ -103,13 +105,13 @@ const CodeMirror = React.memo(({ router, user, note, setCode, ws, setLastEditor,
         const origin = instance.doc.history.lastSelOrigin
         if (!id || !['*mouse','+move'].includes(origin)) return
 
-        ws.send(JSON.stringify({
+        wsMessage(ws, {
           type: 'selection',
           id,
           value: instance.getValue(),
           selections: instance.doc.listSelections(),
           stayAnonymous: ls.get('config', 'stayAnonymous')
-        }))
+        })
       }}
       editorDidMount={instance => setInstance(instance)}
     />
