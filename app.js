@@ -110,7 +110,6 @@ app.ws('/ws', (ws, req) => {
         }
       })
       // save change to db
-      console.log('saving with data -> ', JSON.stringify(data))
       throttle.save(data, req.sessionID)
     }
   }
