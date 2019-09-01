@@ -101,7 +101,7 @@ const CodeMirror = React.memo(({ router, user, note, setCode, ws, setLastEditor,
         }, 1000)
       }}
       onCursorActivity={instance => {
-        const id = router.match.params.id
+        const id = window.location.pathname.slice(1)
         const origin = instance.doc.history.lastSelOrigin
         if (!id || !['*mouse','+move'].includes(origin)) return
 

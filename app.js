@@ -37,6 +37,14 @@ if (prod) {
   app.use(favicon(path.join(__dirname, 'client/build/favicon.ico')))
 }
 
+// delete notes without any value once a day
+;(function cleanup () {
+  (async () => {
+    await knex('notes').where('value', '').del()
+	})()
+  setTimeout(cleanup, 86400000)
+})()
+
 // ping for closed websocket connections
 ;(function ping () {
   (() => {
@@ -72,7 +80,7 @@ app.ws('/ws', (ws, req) => {
   // ws message
   ws.onmessage = async e => {
 
-    const { username, alias, country, ll } = req.session.user || {}
+    const { username, alias, country, ll, ip } = req.session.user || {}
     const data = JSON.parse(e.data)
 
     if (dev) console.log(`message -> ${data.type}`)
@@ -82,6 +90,7 @@ app.ws('/ws', (ws, req) => {
     ws.identifier = data.identifier
     ws.country = country
     ws.ll = ll
+    ws.ip = ip
 
     // associate/disassociate ws connection with note id
     if (data.type === 'connection') {
@@ -101,6 +110,7 @@ app.ws('/ws', (ws, req) => {
         }
       })
       // save change to db
+      console.log('saving with data -> ', JSON.stringify(data))
       throttle.save(data, req.sessionID)
     }
   }
@@ -149,16 +159,31 @@ app.get('/api/sockets', (req, res, next) => {
 })
 
 app.get('/api/user', (req, res, next) => {
+  const ip = dev ? '64.233.191.255' : (req.headers['x-forwarded-for'].split(',')[0] || req.ip)
+
+  // create user object for new user
   if (!req.session.user && !isBot(req.headers['user-agent'])) {
-    const ip = dev ? '64.233.191.255' : (req.headers['x-forwarded-for'].split(',')[0] || req.ip)
     const userMetadata = expressIp().getIpInfo(ip)
     req.session.user = {
       alias: haikunator.haikunate({ tokenLength: 0 }),
       country: userMetadata.country,
-      ll: userMetadata.ll
+      ll: userMetadata.ll,
+      ip
     }
     req.session.cookie.maxAge = 2628002880
   }
+
+  // update ip and meta info if user's ip changed
+  if (req.session.user && req.session.user.ip !== ip) {
+    const userMetadata = expressIp().getIpInfo(ip)
+    req.session.user = {
+      ...req.session.user,
+      country: userMetadata.country,
+      ll: userMetadata.ll,
+      ip
+    }
+  }
+
   res.json(req.session.user)
 })
 
