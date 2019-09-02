@@ -12,11 +12,11 @@
     "lodash.chunk": "^4.2.0",
     "node-sass": "^4.12.0",
     "react": "^16.8.4",
-    "react-codemirror2": "^5.1.0",
+    "react-codemirror2": "6.0.0",
     "react-dom": "^16.8.4",
-    "react-reflex": "^3.0.6",
+    "react-reflex": "3.0.16",
     "react-router-dom": "^5.0.1",
-    "react-scripts": "3.0.1",
+    "react-scripts": "3.1.1",
     "robust-websocket": "^1.0.0"
   },
   "scripts": {
