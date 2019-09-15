@@ -30,6 +30,10 @@ const Note = React.memo(({ router, user }) => {
   React.useEffect(() => {
     const id = router.match.params.id
 
+    if (['/notes','/profile'].includes(`/${id}`)) {
+      wsMessage(ws, { type: 'disconnection', id })
+    }
+
     if (!id) {
       setCode(null)
       setNote({})

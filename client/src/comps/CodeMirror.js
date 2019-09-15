@@ -14,6 +14,7 @@ import wsMessage from '../helpers/ws-message'
 const CodeMirror = React.memo(({ router, user, note, setCode, ws, setLastEditor, setList, message }) => {
 
   const [instance, setInstance] = React.useState()
+  const [creating, setCreating] = React.useState(false)
 
   React.useEffect(() => {
     if (!instance) return
@@ -86,7 +87,8 @@ const CodeMirror = React.memo(({ router, user, note, setCode, ws, setLastEditor,
         }
 
         defer(async () => {
-          if (!id) {
+          if (!id && !creating) {
+            setCreating(true)
             const { id: newNoteId } = await fetch({
               url: '/api/create',
               body: {
@@ -96,6 +98,7 @@ const CodeMirror = React.memo(({ router, user, note, setCode, ws, setLastEditor,
               }
             })
             router.history.push(`/${newNoteId}`)
+            setCreating(false)
           }
           setCode(value)
         }, 1000)
