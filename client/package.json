@@ -10,7 +10,7 @@
     "codemirror": "^5.42.0",
     "http-proxy-middleware": "^0.19.1",
     "lodash.chunk": "^4.2.0",
-    "node-sass": "^4.12.0",
+    "node-sass": "^4.13.1",
     "react": "^16.8.4",
     "react-codemirror2": "6.0.0",
     "react-dom": "^16.8.4",
