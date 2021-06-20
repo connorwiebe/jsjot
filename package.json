@@ -13,24 +13,24 @@
   "dependencies": {
     "bluebird": "^3.5.3",
     "compression": "^1.7.3",
-    "connect-session-knex": "^1.4.0",
-    "crypto-alphanumeric-id": "^1.0.1",
-    "dotenv": "8.1.0",
+    "connect-session-knex": "^2.1.0",
+    "crypto-alphanumeric-id": "^2.0.0",
+    "dotenv": "10.0.0",
     "express": "^4.16.4",
     "express-ip": "^1.0.3",
     "express-session": "^1.15.6",
-    "express-ws": "^4.0.0",
+    "express-ws": "^5.0.2",
     "haikunator": "^2.1.1",
-    "helmet": "^3.15.0",
+    "helmet": "^4.6.0",
     "isbot-fast": "^1.0.0",
-    "knex": "0.19.3",
-    "pg": "^7.6.1",
+    "knex": "0.95.6",
+    "pg": "^8.6.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
     "serve-favicon": "^2.5.0",
-    "statuses": "^1.5.0"
+    "statuses": "^2.0.1"
   },
   "devDependencies": {
-    "concurrently": "4.1.2"
+    "concurrently": "6.2.0"
   }
 }
