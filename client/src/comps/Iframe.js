@@ -13,7 +13,7 @@ const Iframe = React.memo(({ code }) => {
       iframe.contentDocument.body.appendChild(utilsScript)
       iframe.contentDocument.body.appendChild(codeScript)
     }
-    return <iframe onLoad={onLoad} title='sandbox' id='iframe' sandbox='allow-same-origin allow-scripts'></iframe>
+    return <iframe onLoad={onLoad} onError={(err) => console.log('err ->', err)} title='sandbox' id='iframe' sandbox='allow-same-origin allow-scripts' src="javascript:false;"></iframe>
   }
 
   return <RenderIframe/>
