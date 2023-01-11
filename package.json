@@ -23,7 +23,7 @@
     "haikunator": "^2.1.1",
     "helmet": "^4.6.0",
     "isbot-fast": "^1.0.0",
-    "knex": "0.95.6",
+    "knex": "2.4.0",
     "pg": "^8.6.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
